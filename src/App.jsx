@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 
 import {
@@ -21,6 +20,27 @@ import {
 
 import "./App.css";
 import "./Funfly-style.css";
+
+// Deployed FunFly Holidays backend
+const API_BASE_URL = "https://funfly-website.onrender.com";
+
+const saveEnquiryToDatabase = async (enquiryData) => {
+  const response = await fetch(`${API_BASE_URL}/api/enquiries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(enquiryData),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "Unable to submit your enquiry. Please try again."
+    );
+  }
+
+  return result;
+};
 
 // =====================================
 // SAMPLE PACKAGE PRICES - PER PERSON
@@ -274,6 +294,7 @@ function App() {
     email: "",
     date: "",
     persons: 2,
+    destination: "",
     message: "",
   });
 
@@ -300,17 +321,18 @@ function App() {
     : filteredPackages.slice(0, 8);
 
   // =====================================
-  // PACKAGE ENQUIRE - OLD POPUP
+  // PACKAGE ENQUIRE - POPUP
   // =====================================
 
   const openEnquiry = (item = null) => {
     setSelectedPackage(item);
     setShowEnquiry(true);
     setShowQuotation(false);
+    setMenuOpen(false);
   };
 
   // =====================================
-  // TOP NAVBAR ENQUIRE - QUOTATION PAGE
+  // AUTO QUOTATION GENERATOR
   // =====================================
 
   const openQuotation = () => {
@@ -350,6 +372,7 @@ function App() {
 
   const closeEnquiry = () => {
     setShowEnquiry(false);
+    setSelectedPackage(null);
   };
 
   // =====================================
@@ -376,26 +399,41 @@ function App() {
   };
 
   // =====================================
-  // GENERAL ENQUIRY WHATSAPP SUBMIT
+  // SAVE ENQUIRY TO MONGODB + OPEN WHATSAPP
   // =====================================
 
-  const handleEnquirySubmit = (e) => {
+  const handleEnquirySubmit = async (e) => {
     e.preventDefault();
 
-    const message = `
+    // Open a blank tab immediately so the browser does not block WhatsApp
+    // after the asynchronous database request finishes.
+    const whatsappWindow = window.open("", "_blank");
+
+    const enquiryPayload = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.mobile.trim(),
+      destination:
+        selectedPackage?.category ||
+        formData.destination ||
+        "General Enquiry",
+      packageName: selectedPackage?.name || "",
+      travelDate: formData.date || "",
+      travelers: Number(formData.persons) || 1,
+      message: formData.message.trim(),
+    };
+
+    const whatsappMessage = `
 FUNFLY HOLIDAYS - NEW ENQUIRY
 
 Package: ${selectedPackage?.name || "General Enquiry"}
+Destination: ${enquiryPayload.destination}
 
 Name: ${formData.name}
-
 Mobile: ${formData.mobile}
-
 Email: ${formData.email || "Not provided"}
-
 Travel Date: ${formData.date || "Not specified"}
-
-Persons: ${formData.persons}
+Persons: ${enquiryPayload.travelers}
 
 Special Requirements:
 ${formData.message || "Not specified"}
@@ -403,12 +441,42 @@ ${formData.message || "Not specified"}
 Thank you!
     `;
 
-    const whatsappURL =
-      `https://wa.me/917810065579?text=${encodeURIComponent(message)}`;
+    try {
+      await saveEnquiryToDatabase(enquiryPayload);
 
-    window.open(whatsappURL, "_blank");
+      const whatsappURL =
+        `https://wa.me/917810065579?text=${encodeURIComponent(whatsappMessage)}`;
 
-    setShowEnquiry(false);
+      if (whatsappWindow) {
+        whatsappWindow.location.href = whatsappURL;
+      } else {
+        window.location.href = whatsappURL;
+      }
+
+      alert("Your enquiry was saved successfully! WhatsApp is opening now.");
+
+      setShowEnquiry(false);
+      setSelectedPackage(null);
+
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        date: "",
+        persons: 2,
+        destination: "",
+        message: "",
+      });
+    } catch (error) {
+      if (whatsappWindow) whatsappWindow.close();
+
+      console.error("Enquiry submission failed:", error);
+
+      alert(
+        error.message ||
+          "Enquiry could not be submitted. Please try again."
+      );
+    }
   };
 
   // =====================================
@@ -458,7 +526,7 @@ Thank you!
   // SHARE QUOTATION THROUGH WHATSAPP
   // =====================================
 
-  const shareQuotation = () => {
+  const shareQuotation = async () => {
     if (!selectedPackage) {
       alert("Please select a tour package.");
       return;
@@ -473,7 +541,9 @@ Thank you!
       return;
     }
 
-    const message = `
+    const whatsappWindow = window.open("", "_blank");
+
+    const quotationMessage = `
 FUNFLY HOLIDAYS - QUOTATION
 
 Package: ${selectedPackage.name}
@@ -486,17 +556,45 @@ Travel Date: ${quotationData.date}
 Persons: ${quotationPersons}
 
 Price Per Person: ₹${packagePrice.toLocaleString("en-IN")}
-
 Total Amount: ₹${totalAmount.toLocaleString("en-IN")}
 
 Thank you for choosing FunFly Holidays!
 Your journey, our responsibility.
     `;
 
-    window.open(
-      `https://wa.me/917810065579?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
+    try {
+      await saveEnquiryToDatabase({
+        name: quotationData.name.trim(),
+        phone: quotationData.mobile.trim(),
+        destination: selectedPackage.category,
+        packageName: selectedPackage.name,
+        travelDate: quotationData.date,
+        travelers: quotationPersons,
+        message:
+          `Quotation request. Duration: ${selectedPackage.days}. ` +
+          `Price per person: ₹${packagePrice}. Total: ₹${totalAmount}.`,
+      });
+
+      const whatsappURL =
+        `https://wa.me/917810065579?text=${encodeURIComponent(quotationMessage)}`;
+
+      if (whatsappWindow) {
+        whatsappWindow.location.href = whatsappURL;
+      } else {
+        window.location.href = whatsappURL;
+      }
+
+      alert("Quotation enquiry saved successfully! WhatsApp is opening now.");
+    } catch (error) {
+      if (whatsappWindow) whatsappWindow.close();
+
+      console.error("Quotation submission failed:", error);
+
+      alert(
+        error.message ||
+          "Quotation could not be submitted. Please try again."
+      );
+    }
   };
 
   // =====================================
@@ -750,8 +848,7 @@ Your journey, our responsibility.
 
   return (
     <div className="website">
-
-      {/* COMMON FIXED NAVBAR */}
+            {/* COMMON FIXED NAVBAR */}
 
       <header className="header">
         <a
@@ -852,11 +949,11 @@ Your journey, our responsibility.
             +91 78100 65579
           </a>
 
-          {/* TOP RIGHT BUTTON OPENS QUOTATION PAGE */}
+          {/* HEADER ENQUIRE NOW - GENERAL ENQUIRY POPUP */}
 
           <button
             className="enquire-btn"
-            onClick={openQuotation}
+            onClick={() => openEnquiry()}
           >
             ENQUIRE NOW
             <Send size={15} />
@@ -919,9 +1016,11 @@ Your journey, our responsibility.
             </p>
           </div>
 
+          {/* PACKAGES TOP-RIGHT ENQUIRE NOW - QUOTATION GENERATOR */}
+
           <button
             className="enquire-btn"
-            onClick={() => openEnquiry()}
+            onClick={openQuotation}
           >
             Enquire Now
             <Send size={15} />
@@ -1004,7 +1103,7 @@ Your journey, our responsibility.
                   </span>
                 </div>
 
-                {/* PACKAGE BUTTON OPENS OLD ENQUIRY POPUP */}
+                {/* INDIVIDUAL PACKAGE ENQUIRY POPUP */}
 
                 <button
                   className="package-enquire"
@@ -1115,8 +1214,7 @@ Your journey, our responsibility.
           </div>
         </div>
       </section>
-
-      {/* GALLERY SECTION */}
+            {/* GALLERY SECTION */}
 
       <section className="gallery-section" id="gallery">
         <span className="section-label">
@@ -1406,8 +1504,8 @@ Your journey, our responsibility.
             <label>Interested Place</label>
 
             <select
-              name="message"
-              value={formData.message}
+              name="destination"
+              value={formData.destination}
               onChange={handleInputChange}
             >
               <option value="">Select destination</option>
@@ -1453,8 +1551,7 @@ Your journey, our responsibility.
           </form>
         </div>
       </section>
-
-      {/* FOOTER */}
+            {/* FOOTER */}
 
       <footer className="footer">
         <div className="footer-container">
