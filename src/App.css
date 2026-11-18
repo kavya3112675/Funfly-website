@@ -5741,3 +5741,182 @@ section[id] {
     display: none !important;
   }
 }
+
+/* =====================================
+   FUNFLY ADMIN LOGIN & DASHBOARD
+===================================== */
+.funfly-admin-page {
+  min-height: 100vh;
+  padding: 34px clamp(16px, 5vw, 72px) 60px;
+  background: linear-gradient(135deg, #f3f7ff 0%, #fff8f0 100%);
+  color: #17233d;
+}
+.funfly-admin-topbar, .admin-welcome-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.funfly-admin-topbar { max-width: 1180px; margin: 0 auto 55px; }
+.funfly-admin-topbar span, .admin-eyebrow {
+  color: #ef8b24; font-size: 12px; font-weight: 800; letter-spacing: 2px;
+}
+.funfly-admin-topbar h1 { margin: 6px 0 0; font-size: clamp(26px, 4vw, 38px); }
+.funfly-admin-topbar button, .admin-actions button {
+  border: 1px solid #dce3ef; background: #fff; color: #17233d;
+  border-radius: 10px; padding: 12px 18px; font-weight: 700; cursor: pointer;
+}
+.funfly-admin-login {
+  width: min(100%, 460px); margin: 0 auto; padding: 38px;
+  background: #fff; border: 1px solid #e8edf5; border-radius: 24px;
+  box-shadow: 0 22px 65px #243b6422;
+  display: flex; flex-direction: column; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.funfly-admin-login::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 5px;
+  background: linear-gradient(90deg, #ed8b25, #ffc46d, #17233d);
+}
+.admin-login-features {
+  display: grid; gap: 11px; padding: 15px; margin: 2px 0 5px;
+  border: 1px solid #f1e5d7; border-radius: 15px;
+  background: linear-gradient(135deg, #fffaf4, #f8faff);
+}
+.admin-login-features > div { display: flex; align-items: flex-start; gap: 10px; }
+.admin-login-features > div > span {
+  flex: 0 0 22px; width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 50%; background: #e8f7ee; color: #16834a; font-size: 13px; font-weight: 900;
+}
+.admin-login-features p { display: grid; gap: 2px; margin: 0; color: #26344b; }
+.admin-login-features strong { font-size: 12px; }
+.admin-login-features small { color: #718096; font-size: 11px; line-height: 1.45; }
+.admin-login-icon {
+  width: 54px; height: 54px; display: grid; place-items: center;
+  background: #fff1df; color: #ed861c; border-radius: 16px; font-size: 25px;
+}
+.funfly-admin-login h2 { margin: 0; font-size: 28px; }
+.funfly-admin-login p { margin: 0 0 12px; color: #68758b; }
+.funfly-admin-login label { font-size: 13px; font-weight: 700; margin-top: 8px; }
+.funfly-admin-login input {
+  width: 100%; box-sizing: border-box; padding: 14px 15px;
+  border: 1px solid #dce3ef; border-radius: 10px; outline: none;
+}
+.funfly-admin-login input:focus { border-color: #ed8b25; box-shadow: 0 0 0 3px #ed8b251c; }
+.funfly-admin-login > button {
+  margin-top: 12px; padding: 15px; border: 0; border-radius: 10px;
+  background: #ed8b25; color: white; font-weight: 800; cursor: pointer;
+}
+.funfly-admin-login button:disabled { opacity: .65; cursor: wait; }
+.admin-error {
+  padding: 12px 14px; border-radius: 9px; color: #a62929;
+  background: #fff0f0; margin: 12px 0;
+}
+.funfly-admin-content { max-width: 1180px; margin: auto; }
+.admin-welcome-row { margin-bottom: 25px; }
+.admin-welcome-row h2 { margin: 5px 0; font-size: 28px; }
+.admin-welcome-row p { color: #68758b; margin: 5px 0; }
+.admin-actions { display: flex; gap: 10px; }
+.admin-actions .admin-logout { background: #17233d; color: white; border-color: #17233d; }
+.admin-stat-card {
+  display: flex; flex-direction: column; gap: 8px; width: 210px;
+  background: white; border: 1px solid #e8edf5; border-radius: 16px;
+  padding: 20px 24px; box-shadow: 0 8px 25px #243b640c; margin-bottom: 22px;
+}
+.admin-stat-card span { color: #68758b; font-size: 13px; }
+.admin-stat-card strong { font-size: 34px; color: #ed8b25; }
+.admin-table-wrap {
+  overflow-x: auto; background: white; border-radius: 16px;
+  box-shadow: 0 8px 25px #243b640c;
+}
+.admin-enquiry-table { width: 100%; border-collapse: collapse; min-width: 850px; }
+.admin-enquiry-table th, .admin-enquiry-table td {
+  text-align: left; padding: 16px 18px; border-bottom: 1px solid #edf0f5; font-size: 13px;
+}
+.admin-enquiry-table th { background: #17233d; color: white; font-size: 12px; letter-spacing: .4px; }
+.admin-enquiry-table td small { display: block; color: #7c8798; margin-top: 5px; }
+.admin-enquiry-table select {
+  padding: 8px 10px; border: 1px solid #dce3ef; border-radius: 8px; background: white;
+}
+.footer-admin-link {
+  margin-left: 16px; border: 1px solid #ffffff70; background: transparent;
+  color: inherit; border-radius: 20px; padding: 7px 13px; cursor: pointer;
+  font-size: 12px; font-weight: 700;
+}
+.footer-admin-link:hover { background: #ffffff20; }
+@media (max-width: 650px) {
+  .funfly-admin-topbar, .admin-welcome-row { align-items: flex-start; flex-direction: column; }
+  .funfly-admin-topbar { margin-bottom: 35px; }
+  .funfly-admin-login { padding: 28px 20px; }
+  .admin-actions { width: 100%; }
+}
+
+
+/* =====================================
+   AUTO QUOTATION GENERATOR - VISUAL POLISH
+===================================== */
+.quotation-page {
+  min-height: 100vh;
+  padding-bottom: 45px;
+  background: radial-gradient(circle at top left, #fff0dc 0, transparent 34%), #f3f6fb;
+}
+.quotation-header {
+  padding: 22px clamp(18px, 5vw, 70px);
+  background: linear-gradient(115deg, #14213d, #203e68);
+  color: #fff; display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+  box-shadow: 0 8px 24px #14213d25;
+}
+.quotation-header button {
+  border: 1px solid #ffffff55; color: white; background: #ffffff12;
+  border-radius: 30px; padding: 10px 17px; cursor: pointer; font-weight: 700;
+}
+.quotation-header h2 { margin: 0; letter-spacing: 1.5px; }
+.quotation-header p { margin: 0; color: #ffca83; }
+.quotation-container {
+  max-width: 900px; margin: 38px auto; padding: clamp(20px, 4vw, 42px);
+  background: #fff; border-radius: 22px; box-shadow: 0 18px 55px #243b6418;
+}
+.quotation-title { text-align: center; margin-bottom: 30px; }
+.quotation-title h1 { color: #172744; font-size: clamp(27px, 4vw, 38px); margin: 10px 0; }
+.quotation-title p { color: #788397; margin: 0; }
+.quotation-package, .quotation-form, .quotation-summary {
+  padding: 24px; margin: 18px 0; border: 1px solid #e8edf5;
+  border-radius: 16px; background: #fbfcff;
+}
+.quotation-package > span { display: block; color: #e88722; font-weight: 800; font-size: 12px; letter-spacing: 1.2px; margin-bottom: 12px; }
+.quotation-package select, .quotation-form input {
+  box-sizing: border-box; width: 100%; padding: 14px 15px; border: 1px solid #dce3ef;
+  border-radius: 10px; background: #fff; color: #24334d; outline: none;
+}
+.quotation-package select:focus, .quotation-form input:focus {
+  border-color: #ed8b25; box-shadow: 0 0 0 3px #ed8b251c;
+}
+.quotation-package h2 { color: #172744; margin: 18px 0 5px; }
+.quotation-package p { display: inline-block; margin: 5px 8px 0 0; padding: 6px 11px; border-radius: 20px; background: #fff0dc; color: #a65c0e; font-size: 12px; font-weight: 700; }
+.quotation-form { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 18px; }
+.quotation-form h3 { grid-column: 1 / -1; margin: 0 0 8px; color: #172744; }
+.quotation-form label { align-self: end; font-size: 13px; font-weight: 700; color: #526078; }
+.quotation-form input { margin-bottom: 7px; }
+.quotation-summary { background: #172744; color: white; border: 0; }
+.quotation-summary h3 { margin-top: 0; font-size: 21px; }
+.quotation-summary > div { display: flex; justify-content: space-between; gap: 15px; padding: 13px 0; border-bottom: 1px solid #ffffff20; }
+.quotation-summary > div span { color: #c4cede; }
+.quotation-summary .quotation-total { border: 0; margin-top: 8px; color: #ffbf70; font-size: 18px; }
+.quotation-note { color: #c4cede; font-size: 12px; line-height: 1.6; }
+.quotation-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0; }
+.quotation-actions button { border: 0; border-radius: 10px; padding: 14px 20px; font-weight: 800; cursor: pointer; }
+.quotation-actions .quotation-pdf { background: #edf1f7; color: #172744; }
+.quotation-actions .quotation-whatsapp { background: #1eaa63; color: white; display: inline-flex; align-items: center; gap: 8px; }
+.quotation-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.quotation-footer { text-align: center; border-top: 1px solid #edf0f5; padding-top: 22px; color: #778296; font-size: 13px; }
+.quotation-footer h3 { color: #172744; letter-spacing: 1.5px; }
+@media (max-width: 600px) {
+  .quotation-container { margin: 18px 12px; padding: 18px 14px; }
+  .quotation-form { grid-template-columns: 1fr; gap: 7px; }
+  .quotation-form h3 { grid-column: auto; }
+  .quotation-actions { flex-direction: column; }
+  .quotation-actions button { justify-content: center; width: 100%; }
+  .quotation-header { gap: 12px; }
+}
+@media print {
+  body { background: white !important; }
+  .quotation-header button { display: none !important; }
+  .quotation-page { background: white !important; }
+  .quotation-container { box-shadow: none; margin: 0 auto; }
+}

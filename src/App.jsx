@@ -286,6 +286,16 @@ function App() {
   const [showQuotation, setShowQuotation] = useState(false);
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
 
+  // Admin login and dashboard
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminToken, setAdminToken] = useState(
+    () => localStorage.getItem("funflyAdminToken") || ""
+  );
+  const [adminLogin, setAdminLogin] = useState({ email: "", password: "" });
+  const [adminError, setAdminError] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminEnquiries, setAdminEnquiries] = useState([]);
+
   const [selectedPackage, setSelectedPackage] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -304,6 +314,98 @@ function App() {
     date: "",
     persons: 2,
   });
+
+  // =====================================
+  // ADMIN LOGIN + ENQUIRY DASHBOARD
+  // =====================================
+
+  const loadAdminEnquiries = async (token = adminToken) => {
+    setAdminLoading(true);
+    setAdminError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/enquiries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json().catch(() => []);
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("funflyAdminToken");
+          setAdminToken("");
+        }
+        throw new Error(data.message || "Unable to load enquiries.");
+      }
+      setAdminEnquiries(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setAdminError(error.message || "Unable to connect to the server.");
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const openAdmin = () => {
+    setShowAdmin(true);
+    setShowEnquiry(false);
+    setShowQuotation(false);
+    setShowPhotoGallery(false);
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+    const savedToken = localStorage.getItem("funflyAdminToken");
+    if (savedToken) {
+      setAdminToken(savedToken);
+      loadAdminEnquiries(savedToken);
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setAdminLoading(true);
+    setAdminError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(adminLogin),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Login failed.");
+      if (!data.token) throw new Error("Login token was not received.");
+      localStorage.setItem("funflyAdminToken", data.token);
+      setAdminToken(data.token);
+      await loadAdminEnquiries(data.token);
+    } catch (error) {
+      setAdminError(error.message || "Login failed. Please try again.");
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const logoutAdmin = () => {
+    localStorage.removeItem("funflyAdminToken");
+    setAdminToken("");
+    setAdminLogin({ email: "", password: "" });
+    setAdminEnquiries([]);
+    setAdminError("");
+  };
+
+  const updateAdminEnquiryStatus = async (id, status) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/enquiries/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Status update failed.");
+      setAdminEnquiries((items) =>
+        items.map((item) => item._id === id ? { ...item, status } : item)
+      );
+    } catch (error) {
+      setAdminError(error.message || "Unable to update enquiry.");
+    }
+  };
 
   // =====================================
   // PACKAGE FILTER
@@ -596,6 +698,119 @@ Your journey, our responsibility.
       );
     }
   };
+
+  // =====================================
+  // ADMIN PAGE
+  // =====================================
+
+  if (showAdmin) {
+    return (
+      <div className="funfly-admin-page">
+        <div className="funfly-admin-topbar">
+          <div>
+            <span>FUNFLY HOLIDAYS</span>
+            <h1>Admin {adminToken ? "Dashboard" : "Login"}</h1>
+          </div>
+          <button type="button" onClick={() => { setShowAdmin(false); window.scrollTo(0, 0); }}>
+            ← Back to Website
+          </button>
+        </div>
+
+        {!adminToken ? (
+          <form className="funfly-admin-login" onSubmit={handleAdminLogin}>
+            <div className="admin-login-icon">✈</div>
+            <p className="admin-eyebrow">WELCOME BACK</p>
+            <h2>Admin Login</h2>
+            <p>Sign in to manage customer enquiries.</p>
+            <div className="admin-login-features">
+              <div><span>✓</span><p><strong>View enquiries</strong><small>See customer details and travel requests in one place.</small></p></div>
+              <div><span>✓</span><p><strong>Track follow-ups</strong><small>Update each enquiry as Pending, Contacted or Completed.</small></p></div>
+              <div><span>✓</span><p><strong>Stay organised</strong><small>Check the total enquiries and refresh the latest requests.</small></p></div>
+            </div>
+            <label htmlFor="admin-email">Email Address</label>
+            <input
+              id="admin-email"
+              type="email"
+              autoComplete="username"
+              placeholder="Enter admin email"
+              value={adminLogin.email}
+              onChange={(e) => setAdminLogin((v) => ({ ...v, email: e.target.value }))}
+              required
+            />
+            <label htmlFor="admin-password">Password</label>
+            <input
+              id="admin-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Enter password"
+              value={adminLogin.password}
+              onChange={(e) => setAdminLogin((v) => ({ ...v, password: e.target.value }))}
+              required
+            />
+            {adminError && <div className="admin-error">{adminError}</div>}
+            <button type="submit" disabled={adminLoading}>
+              {adminLoading ? "Signing in..." : "Login to Dashboard"}
+            </button>
+          </form>
+        ) : (
+          <div className="funfly-admin-content">
+            <div className="admin-welcome-row">
+              <div>
+                <p className="admin-eyebrow">OVERVIEW</p>
+                <h2>Customer Enquiries</h2>
+                <p>View and update the enquiries received from your website.</p>
+              </div>
+              <div className="admin-actions">
+                <button type="button" onClick={() => loadAdminEnquiries()} disabled={adminLoading}>
+                  ↻ Refresh
+                </button>
+                <button type="button" className="admin-logout" onClick={logoutAdmin}>Logout</button>
+              </div>
+            </div>
+            <div className="admin-stat-card">
+              <span>Total Enquiries</span>
+              <strong>{adminEnquiries.length}</strong>
+            </div>
+            {adminError && <div className="admin-error">{adminError}</div>}
+            <div className="admin-table-wrap">
+              <table className="admin-enquiry-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th><th>Contact</th><th>Package / Destination</th>
+                    <th>Travel Date</th><th>Persons</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminLoading && adminEnquiries.length === 0 ? (
+                    <tr><td colSpan="6">Loading enquiries...</td></tr>
+                  ) : adminEnquiries.length === 0 ? (
+                    <tr><td colSpan="6">No enquiries found yet.</td></tr>
+                  ) : adminEnquiries.map((item) => (
+                    <tr key={item._id}>
+                      <td><strong>{item.name || "—"}</strong><small>{item.email || "—"}</small></td>
+                      <td>{item.phone || "—"}</td>
+                      <td><strong>{item.packageName || item.destination || "General Enquiry"}</strong></td>
+                      <td>{item.travelDate ? new Date(item.travelDate).toLocaleDateString("en-IN") : "—"}</td>
+                      <td>{item.travelers || 1}</td>
+                      <td>
+                        <select
+                          aria-label={`Status for ${item.name || "enquiry"}`}
+                          value={item.status || "Pending"}
+                          onChange={(e) => updateAdminEnquiryStatus(item._id, e.target.value)}
+                        >
+                          <option>Pending</option><option>Contacted</option><option>Completed</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // =====================================
   // PHOTO GALLERY PAGE
@@ -1622,6 +1837,9 @@ Your journey, our responsibility.
 
         <div className="footer-bottom">
           © 2026 FunFly Holidays. All Rights Reserved.
+          <button type="button" className="footer-admin-link" onClick={openAdmin}>
+            Admin Login
+          </button>
         </div>
       </footer>
 
